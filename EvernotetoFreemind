@@ -1,0 +1,49 @@
+import os
+import xml.etree.ElementTree as ET
+from bs4 import BeautifulSoup
+
+
+def folderprocess(inputfolder, topicnode):
+    for filename in os.listdir(inputfolder):
+        file_path = os.path.join(inputfolder, filename)
+
+        if os.path.isdir(file_path):
+            if not file_path.endswith("files"):
+                dirnode = ET.SubElement(topicnode, "node")
+                dirnode.set("TEXT", filename)
+                folderprocess(file_path, dirnode)
+        elif os.path.isfile(file_path):
+            (name, extension) = os.path.splitext(filename)
+            if extension == ".html":
+                # Modify the HTML file to remove styling and formatting
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    html_content = file.read()
+                soup = BeautifulSoup(html_content, 'html.parser')
+                # Remove non-text elements
+                for element in soup(['script', 'style']):
+                    element.extract()
+                discussionnode = ET.SubElement(topicnode, "node")
+                discussionnode.set("TEXT", name)
+                discussionnode.set("LINK", file_path)
+                # Create separate subelements for each line of text content
+                for line in soup.stripped_strings:
+                    textcontent = ET.SubElement(discussionnode, "node")
+                    textcontent.set("TEXT", line)
+
+
+def filetomindmap(inputfolder, outputfile):
+    root = ET.Element('map')
+    root.set("version", "1.0.1")
+    topic = ET.SubElement(root, 'node')
+    inputfoldername = os.path.basename(inputfolder)
+    topic.set("TEXT", inputfoldername)
+    folderprocess(inputfolder, topic)
+    tree = ET.ElementTree(root)
+    output_file_path = os.path.join(outputfile, 'test.mm')
+    ET.indent(root, space=' ', level=0)
+    tree.write(output_file_path, encoding='utf-8', xml_declaration=False)
+
+
+inputfolder = input("Please input folder location: ")
+outputfile = input("Please input output file location: ")
+filetomindmap(inputfolder, outputfile)
