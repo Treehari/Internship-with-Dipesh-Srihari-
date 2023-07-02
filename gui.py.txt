@@ -1,0 +1,672 @@
+import multiprocessing
+import tkinter
+import traceback
+import logging
+from tkinter import *
+from tkinter import messagebox, filedialog, ttk
+import shutil
+import zipfile
+import os
+import webbrowser
+import requests
+import tkinter as tk
+############--Local Imports------##############
+from importChromeBookmarks import importFromChrome
+from importChromeHistory import importChromeHistory
+from importMSWordLinks import getLinksFromHTMLDoc
+from importYoutubeDateAndChannel import importYoutubeHistory
+from importPearlTrees import importFromPearltrees
+from importContacts import ImportFromLinkedIn
+import random
+from licensing.methods import Helpers
+
+#########---------Liscence-------------------#########
+def dispose_char(line,position,newchar):
+    displosed_line_list = list(line)
+    #print("\nLen:"+str(len(displosed_line_list)))
+    displosed_line_list[position] = newchar
+    output_line = "".join(displosed_line_list)
+    return output_line
+def generate_key():
+    mac = str(Helpers.GetMachineCode())
+    #print("mac:"+mac)
+    dispose = mac[6:13]
+    disposed = ""
+    for char in dispose:
+        if char == 'a':
+            disposed = disposed + '4'
+        if char == 'b':
+            disposed = disposed + '8'
+        if char == 'c':
+            disposed = disposed + 'e'
+        if char == 'd':
+            disposed = disposed + '2'
+        if char == 'e':
+            disposed = disposed + 'b'
+        if char == 'f':
+            disposed = disposed + 'f'
+        if char == '1':
+            disposed = disposed + '3'
+        if char == '2':
+            disposed = disposed + 'c'
+        if char == '3':
+            disposed = disposed + 'a'
+        if char == '4':
+            disposed = disposed + '6'
+        if char == '5':
+            disposed = disposed + '9'
+        if char == '6':
+            disposed = disposed + '0'
+        if char == '7':
+            disposed = disposed + '5'
+        if char == '8':
+            disposed = disposed + '7'
+        if char == '9':
+            disposed = disposed + '1'
+        if char == '0':
+            disposed = disposed + 'd'
+    #print("org:"+dispose)
+    #print("new:"+disposed)
+    random_lines = ""
+    output_lines = ""
+    letters = 'abcdefgh1234567890'
+    #letters = 'a'
+    for j in range(7):
+        new_line = ""
+        for i in range(26):
+            new_line += random.choice(letters)
+        new_line += '\n'
+        random_lines = random_lines + new_line
+    #print("random Lines \n:"+lines)
+    all_lines = random_lines.split('\n')
+    i=0
+    #print(len(all_lines))
+    random_list = [20,12,4,21,14,6,8,13]
+    for random_line in all_lines:
+        if(len(random_line)<10):
+            continue
+        output_lines += dispose_char(random_line, random_list[i], disposed[i]) + '\n'
+        i+=1
+    #print("Output Lines \n:" + output_lines)
+    input_fh = open('settings.md','w+')
+    input_fh.writelines(output_lines)
+    input_fh.close()
+    return
+class ParseMethod:
+    def extract_text(self):
+        input_fh = open('settings.md', 'r')
+        lines = input_fh.readlines()
+        input_fh.close()
+        random_list = [20, 12, 4, 21, 14, 6, 8, 13]
+        i = 0
+        extracted_text = ""
+        for line in lines:
+            if (line == ""):
+                continue
+            extracted_text += line[random_list[i]]
+            i += 1
+        return extracted_text
+    def verify_key(self):
+        # Get letters from the text
+        # extracted_text = "bc9b6b13"
+        extracted_text = self.extract_text()
+        # print("extracted:"+extracted_text)
+        disposed = ""
+        for char in extracted_text:
+            if char == 'f':
+                disposed = disposed + 'f'
+            if char == '4':
+                disposed = disposed + 'a'
+            if char == '8':
+                disposed = disposed + 'b'
+            if char == 'e':
+                disposed = disposed + 'c'
+            if char == '2':
+                disposed = disposed + 'd'
+            if char == 'b':
+                disposed = disposed + 'e'
+            if char == '3':
+                disposed = disposed + '1'
+            if char == 'c':
+                disposed = disposed + '2'
+            if char == 'a':
+                disposed = disposed + '3'
+            if char == '6':
+                disposed = disposed + '4'
+            if char == '9':
+                disposed = disposed + '5'
+            if char == '0':
+                disposed = disposed + '6'
+            if char == '5':
+                disposed = disposed + '7'
+            if char == '7':
+                disposed = disposed + '8'
+            if char == '1':
+                disposed = disposed + '9'
+            if char == 'd':
+                disposed = disposed + '0'
+        mac = str(Helpers.GetMachineCode())
+        # print(mac)
+        dispose = mac[6:13]
+        #print("Mac:" + dispose)
+        #print("Disposed:" + disposed)
+        if disposed == dispose:
+            return True
+        return False
+#########################################################
+
+global liscence
+global email_id
+
+ASSETS_PATH = "input"+os.sep+"assets"
+window = tk.Tk()
+
+
+global output_path
+global input_path
+
+output_path = ""
+input_path = ""
+#Main window
+
+
+global logo
+logo = PhotoImage(file=ASSETS_PATH + os.sep + "Logo.png")
+window.call('wm', 'iconphoto', window._w, logo)
+window.title("BrainChain")
+window.geometry("962x619")
+window.configure(bg="#3A7FF6")
+canvas = Canvas(
+    window, bg="#3A7FF6", height=619, width=962,
+    bd=0, highlightthickness=0, relief="ridge")
+canvas.place(x=0, y=0)
+canvas.create_rectangle(431, 0, (491 + 701) * 2, (0 + 719)
+                        * 2, fill="#FCFCFC", outline="")
+canvas.create_rectangle(40, 160, 40 + 100, 160 + 5, fill="#FCFCFC", outline="")
+
+
+#Background Boxes
+
+text_box_bg = PhotoImage(file=ASSETS_PATH + "/" + "TextBox_Bg.png")
+filePath_entry_img = canvas.create_image(700.5, 167.5, image=text_box_bg)
+output_path_entry_img = canvas.create_image(700.5, 248.5, image=text_box_bg)
+
+
+
+
+def select_input_path():
+    global input_path
+    input_path = filedialog.askopenfilename()
+    var = input_path
+    e_box.delete(0, tkinter.END)
+    e_box.insert(0, input_path)
+
+
+def select_output_path():
+    global output_path
+    output_path = filedialog.askdirectory()
+    out_var = output_path
+    o_box.delete(0,tkinter.END)
+    o_box.insert(0, output_path)
+
+    if output_path=="":
+        messagebox.showinfo(
+            "Information", "Output Will be created on Desktop!")
+
+
+
+logging.basicConfig(format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+                    datefmt='%d-%m-%Y:%H:%M:%S',
+                    level=logging.DEBUG,
+                    filename='logs.txt')
+logger = logging.getLogger('brainchain_app')
+
+
+
+
+my_string_var = StringVar()
+status_lbl = Label(
+    text="Processing not begun..", bg="white",
+    fg="black", font=("Arial-BoldMT", int(8.0)), textvariable=my_string_var)
+my_string_var.set("Processing not begun..")
+status_lbl.place(x=447, y=530)
+window.update()
+
+
+#Path Boxes
+
+var = StringVar()
+
+e_box = Entry(window, bd=0, textvar=var, highlightthickness=0,
+              bg="#F6F7F9", fg="#000716")
+e_box.place(x=540.0, y=135 + 25, width=321.0, height=35)
+# e_box.drop_target_register(DND_FILES)
+# e_box.dnd_bind('<<Drop>>', drop)
+
+out_var = StringVar()
+o_box = Entry(window, bd=0, textvar=out_var,
+              highlightthickness=0, bg="#F6F7F9", fg="#000716")
+o_box.place(x=540.0, y=218 + 25, width=321.0, height=35)
+o_box.insert(0,"Generated at Desktop by default")
+path_picker_img = PhotoImage(file=ASSETS_PATH + "/" + "path_picker.png")
+# path_picker_img = PhotoImage(file="path_picker.png")
+input_picker_button = Button(
+    image=path_picker_img,
+    text='',
+    compound='center',
+    fg='white',
+    borderwidth=0,
+    highlightthickness=0,
+    command=select_input_path,
+    relief='flat'
+)
+
+input_picker_button.place(
+    x=833, y=150,
+    width=24,
+    height=22
+)
+
+
+output_picker_button = Button(
+    image=path_picker_img,
+    text='',
+    compound='center',
+    fg='white',
+    borderwidth=0,
+    highlightthickness=0,
+    command=select_output_path,
+    relief='flat'
+)
+
+output_picker_button.place(
+    x=833, y=225.5,
+    width=24,
+    height=22
+)
+
+canvas.create_text(
+    573.5, 88.0, text="Enter the details.",
+    fill="#515486", font=("Arial-BoldMT", int(22.0)))
+
+canvas.create_text(
+    540.0, 150.5, text="Input Path",
+    fill="#515486", font=("Arial-BoldMT", int(13.0)), anchor="w")
+
+canvas.create_text(
+    540.0, 230.5, text="Output Path",
+    fill="#515486", font=("Arial-BoldMT", int(13.0)), anchor="w")
+
+
+
+#Info Section
+
+title = Label(
+    text="Welcome to BrainChain", bg="#3A7FF6",
+    fg="white", font=("Arial-BoldMT", int(20.0)))
+title.place(x=27.0, y=75.0)
+
+info_text = Label(
+    text="BrainChain is a software and process framework\nto sync and collaborate with our virtual minds.\n\n"
+         "We believe we can do great things together by\nbuilding trust in our network and\nmaintaining, sharing our second brains .\n\n"
+         "At BrainChain our mission is to\n\nConnect the dots... \nConnect the world...",
+    bg="#3A7FF6", fg="white", justify="left",
+    font=("Georgia", int(13.0)))
+
+info_text.place(x=27.0, y=200.0)
+
+
+def callback(url):
+    webbrowser.open_new_tab(url)
+
+
+know_more = Label(
+    text="*click here to know more about usage of STIM....!",
+    bg="#3A7FF6", fg="#FCFCFC", cursor="hand2")
+
+know_more.place(x=27, y=460)
+know_more.bind('<Button-1>', lambda e:
+               callback("http://www.google.com"))
+
+
+
+#Radio Button Input Section
+
+tut_btn_image = PhotoImage(file=ASSETS_PATH + "/" + "see_tut.png")
+
+tutorial_button1 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat",)
+tutorial_button1.bind(
+    '<Button-1>', lambda e: callback("http://www.google.com"))
+
+tutorial_button1.place(x=507, y=300, width=80, height=25,)
+
+tutorial_button2 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat",)
+tutorial_button2.bind(
+    '<Button-2>', lambda e: callback("http://www.google.com"))
+
+tutorial_button2.place(x=507, y=330, width=80, height=25,)
+
+tutorial_button3 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat",)
+tutorial_button3.bind(
+    '<Button-3>', lambda e: callback("http://www.google.com"))
+
+tutorial_button3.place(x=507, y=360, width=80, height=25,)
+
+tutorial_button4 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat",)
+tutorial_button4.bind(
+    '<Button>', lambda e: callback("http://www.google.com"))
+
+tutorial_button4.place(x=720, y=300, width=80, height=25,)
+
+tutorial_button5 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat",)
+tutorial_button5.bind(
+    '<Button>', lambda e: callback("http://www.google.com"))
+
+tutorial_button5.place(x=720, y=330, width=80, height=25,)
+
+tutorial_button_6 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                           relief="flat",)
+tutorial_button_6.bind(
+    '<Button>', lambda e: callback("http://www.google.com"))
+
+tutorial_button_6.place(x=720, y=360, width=80, height=25)
+
+
+label = Label(window)
+
+
+radio = IntVar()
+R1 = Radiobutton(window, text="Chrome History", variable=radio, value=1,  bg='white', fg='black',
+                 command=NONE,)
+R1.pack(anchor=W, )
+R1.place(x=587, y=300)
+
+R2 = Radiobutton(window, text="Chrome Bookmarks", variable=radio, value=2, bg='white', fg='black',
+                 command=NONE)
+R2.pack(anchor=W)
+R2.place(x=587, y=330)
+
+R3 = Radiobutton(window, text="Youtube History", variable=radio, value=3, bg='white', fg='black',
+                 command=NONE)
+R3.pack(anchor=W)
+R3.place(x=587, y=360)
+
+R4 = Radiobutton(window, text="HTML from Docx", variable=radio, value=4,  bg='white', fg='black',
+                 command=NONE,)
+R4.pack(anchor=W, )
+R4.place(x=802, y=300)
+
+R5 = Radiobutton(window, text="Pearltrees Bookmarks", variable=radio, value=5, bg='white', fg='black',
+                 command=NONE)
+R5.pack(anchor=W)
+R5.place(x=802, y=330)
+
+R6 = Radiobutton(window, text="LinkedIn Contacts", variable=radio, value=6, bg='white', fg='black',
+                 command=NONE)
+R6.pack(anchor=W)
+R6.place(x=802, y=360)
+
+
+#Authentication Popup
+
+global auth_bg
+auth_bg = PhotoImage(file=ASSETS_PATH + "/" + "Authenticate.png")
+
+
+def close_window(top):
+    top.destroy()
+
+def validate_for_file_format(file_format,filename):
+    if filename.lower().endswith(file_format):
+        return 1
+    else:
+        messagebox.showerror("File format Error", "File should be in " + file_format + " format")
+        return 0
+global liscence
+global email_id
+liscence = ""
+email_id = ""
+global loading_flag
+loading_flag = False
+processing_complete_flag = False
+current_index = 0
+
+def update_label():
+    global current_index
+    global loading_flag
+    global processing_complete_flag
+    synonyms = ["Loading...", "Preparing...", "Initializing...", "Calibrating...", "Optimizing...", "Syncing...",
+                "Buffering...", "Synchronizing...", "Compiling...", "Analyzing..."]
+   # print(loading_flag)
+    if loading_flag:
+        #status_lbl.config(text=synonyms[current_index])
+        my_string_var.set(synonyms[current_index])
+        current_index = (current_index + 1) % len(synonyms)
+        status_lbl.update()
+    elif not loading_flag and processing_complete_flag:
+        #status_lbl.config(text="Processing Complete")
+        my_string_var.set("Processing Complete")
+        status_lbl.update()
+    window.after(2000, update_label)
+
+
+def generate_click():
+    selection = radio.get()
+    global output_path
+    global input_path
+    global loading_flag
+    global processing_complete_flag
+    obj = ParseMethod()
+    if not os.path.exists('settings.md'):
+        open_popup()
+        return
+    if (obj.verify_key()):
+        try:
+            loading_flag = True
+            update_label()
+            if output_path == "":
+                output_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
+            if selection == 2:
+                logger.info("Importing From Chrome Bookmarks")
+                output_flag = validate_for_file_format("html", input_path)
+                if output_flag == 0:
+                    return
+                messagebox.showinfo("Info","Importing from Chrome Bookmarks, This might take 2-5 minutes depending on the size please be patient")
+                importFromChrome(input_path, output_path)
+            elif selection == 1:
+                logger.info("Importing From Chrome History")
+                messagebox.showinfo("Info","Importing from Chrome History, This might take 2-5 minutes depending on the size please be patient")
+                importChromeHistory(output_path)
+            elif selection == 5:
+                logger.info("Importing From Pearltrees")
+                output_flag = validate_for_file_format("html", input_path)
+                if output_flag == 0:
+                    return
+                messagebox.showinfo("Info","Importing from Pearltrees, This might take 2-5 minutes depending on the size please be patient")
+                importFromPearltrees(input_path, output_path)
+            elif selection == 3:
+                logger.info("Importing From Youtube History")
+                output_flag = validate_for_file_format("zip", input_path)
+                if output_flag == 0:
+                    return
+                messagebox.showinfo("Info","Importing from Youtube History, This might take 2-5 minutes depending on the size please be patient")
+                importYoutubeHistory(input_path, output_path)
+            elif selection == 4:
+                logger.info("Importing From Doc file")
+                messagebox.showinfo("Info","We are launching this feature soon...")
+                #if input_path.lower().endswith("doc") or input_path.lower().endswith("docx"):
+                #    messagebox.showinfo("Info","Importing links from html file, This might take 2-5 minutes depending on the size please be patient")
+                #    getLinksFromHTMLDoc(input_path, output_path)
+                #else:
+                #    messagebox.showerror("File Error", "Please select a doc file")
+            elif selection == 6:
+                logger.info("Importing From Linkedin")
+                output_flag = validate_for_file_format("zip", input_path)
+                if output_flag == 0:
+                    return
+                messagebox.showinfo("Info","Importing connects from linkedin, This might take 2-5 minutes depending on the size please be patient")
+                ImportFromLinkedIn(input_path, output_path)
+            else:
+                messagebox.showinfo("Info","Please select the type of input.")
+            loading_flag = False
+            processing_complete_flag = True
+            logger.info("Processing Complete")
+        except Exception as e:
+            messagebox.showerror("Error", "Something went wrong")
+            logger.critical(e)
+            logger.critical(traceback.format_exc())
+    else:
+        open_popup()
+
+
+
+
+
+def open_popup():
+    def generate_key():
+        mac = str(Helpers.GetMachineCode())
+        # print("mac:"+mac)
+        dispose = mac[6:13]
+        disposed = ""
+        for char in dispose:
+            if char == 'a':
+                disposed = disposed + '4'
+            if char == 'b':
+                disposed = disposed + '8'
+            if char == 'c':
+                disposed = disposed + 'e'
+            if char == 'd':
+                disposed = disposed + '2'
+            if char == 'e':
+                disposed = disposed + 'b'
+            if char == 'f':
+                disposed = disposed + 'f'
+            if char == '1':
+                disposed = disposed + '3'
+            if char == '2':
+                disposed = disposed + 'c'
+            if char == '3':
+                disposed = disposed + 'a'
+            if char == '4':
+                disposed = disposed + '6'
+            if char == '5':
+                disposed = disposed + '9'
+            if char == '6':
+                disposed = disposed + '0'
+            if char == '7':
+                disposed = disposed + '5'
+            if char == '8':
+                disposed = disposed + '7'
+            if char == '9':
+                disposed = disposed + '1'
+            if char == '0':
+                disposed = disposed + 'd'
+        # print("org:"+dispose)
+        # print("new:"+disposed)
+        random_lines = ""
+        output_lines = ""
+        letters = 'abcdefgh1234567890'
+        # letters = 'a'
+        for j in range(7):
+            new_line = ""
+            for i in range(26):
+                new_line += random.choice(letters)
+            new_line += '\n'
+            random_lines = random_lines + new_line
+        # print("random Lines \n:"+lines)
+        all_lines = random_lines.split('\n')
+        i = 0
+        # print(len(all_lines))
+        random_list = [20, 12, 4, 21, 14, 6, 8, 13]
+        for random_line in all_lines:
+            if (len(random_line) < 10):
+                continue
+            output_lines += dispose_char(random_line, random_list[i], disposed[i]) + '\n'
+            i += 1
+        # print("Output Lines \n:" + output_lines)
+        input_fh = open('settings.md', 'w+')
+        input_fh.writelines(output_lines)
+        input_fh.close()
+        return
+    def user_authentication():
+        id = license_box.get()
+        email = email_box.get()
+        try:
+            response = requests.get(f"http://13.235.242.164:3000/brainChain/verify-user?license={id}&email={email}")
+           # print(response.json())
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return response.json()
+        except requests.ConnectionError:
+            messagebox.showerror("Error", "please connect to internet...")
+    def authenticate():
+        response = user_authentication()
+        if response.get("message") == "License Activated":
+            generate_key()
+            obj = ParseMethod()
+            if (obj.verify_key()):
+                messagebox.showinfo("Success", "Licence activation successful")
+        elif response.get("message") == "Invalid License":
+            messagebox.showerror("Error", "Invalid License")
+        elif response.get("message") == "License already used":
+            messagebox.showerror("Error", "License already used")
+        else:
+            messagebox.showerror("Error", response.get("message"))
+
+    top = Toplevel(window)
+    top.geometry("550x350")
+    top.title("Authentication")
+
+    c = Canvas(
+        top, bg="#FCFCFC", height=350, width=550,
+        bd=0, highlightthickness=0, relief="ridge")
+    c.place(x=0, y=0)
+    # generate_btn_img = PhotoImage(file="generate.png")
+    licence_entry_img = c.create_image(300.5, 187.5, image=text_box_bg)
+    license_box = Entry(top, bd=0, highlightthickness=0,
+                        bg="#F6F7F9", fg="#000716")
+    license_box.place(x=135.0, y=155 + 25, width=321.0, height=35)
+    license_box.focus()
+
+    email_entry_img = c.create_image(300.5, 107.5, image=text_box_bg)
+    email_box = Entry(top, bd=0, highlightthickness=0,
+                        bg="#F6F7F9", fg="#000716")
+    email_box.place(x=135.0, y=75 + 25, width=321.0, height=35)
+    email_box.focus()
+    
+    c.create_text(
+    140.0, 169.5, text="Enter your License Key",
+    fill="#515486", font=("Arial-BoldMT", int(13.0)), anchor="w")
+    
+    c.create_text(
+    140.0, 89.5, text="Enter your Email ",
+    fill="#515486", font=("Arial-BoldMT", int(13.0)), anchor="w")
+
+
+    
+    _btn = Button(top,
+                  image=auth_bg, borderwidth=0, highlightthickness=0,
+                  command=authenticate, relief="solid")
+    _btn.place(x=200, y=270, width=180, height=55)
+
+
+
+generate_btn_img = PhotoImage(file=ASSETS_PATH + "/" + "generate.png")
+
+generate_btn = Button(
+    image=generate_btn_img, borderwidth=0, highlightthickness=0,
+    command=generate_click, relief="flat")
+generate_btn.place(x=587, y=430, width=180, height=55)
+
+canvas.create_text(
+    746.5, 528.5, text="Generate",
+    fill="#FFFFFF", font=("Arial-BoldMT", int(13.0)))
+
+window.resizable(False, False)
+window.mainloop()
