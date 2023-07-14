@@ -1,0 +1,463 @@
+import tkinter
+import logging
+from tkinter import *
+from tkinter import messagebox, filedialog, ttk
+import os
+import webbrowser
+import tkinter as tk
+import re
+import subprocess
+
+
+class ParseMethod:
+    def extract_text(self):
+        input_fh = open('settings.md', 'r')
+        lines = input_fh.readlines()
+        input_fh.close()
+        random_list = [20, 12, 4, 21, 14, 6, 8, 13]
+        i = 0
+        extracted_text = ""
+        for line in lines:
+            if line == "":
+                continue
+            extracted_text += line[random_list[i]]
+            i += 1
+        return extracted_text
+
+
+def filter_mindmap_structure(mindmap_content, input_word):
+    filtered_structure = ""
+    current_node = ""  # Variable to keep track of the current node
+
+    # Find all the node elements in the mindmap content
+    pattern = r"<node .*?TEXT=\"(.*?)\".*?>"
+    matches = re.findall(pattern, mindmap_content)
+
+    for match in matches:
+        # Check if the input_word is present in the node text
+        if input_word in match:
+            # Set the current_node to the matching node
+            current_node = match
+
+        # Check if the current_node is not empty (i.e., we have found the matching node)
+        if current_node:
+            # Add the current node to the filtered structure
+            filtered_structure += match + " > "
+
+        # Check if the current node is the root node
+        if match == "ideas":
+            # Reset the current_node since we reached the root node
+            current_node = ""
+
+    # Remove the trailing " > " from the filtered structure
+    filtered_structure = filtered_structure.rstrip(" > ")
+
+    return filtered_structure
+
+
+#########################################################
+
+global liscence
+global email_id
+
+ASSETS_PATH = r"C:\Users\sriha\Downloads\input\input\assets"
+window = tk.Tk()
+
+global output_path
+global input_path
+
+output_path = ""
+input_path = ""
+input_word = ""
+
+# Main window
+global logo
+logo = PhotoImage(file=ASSETS_PATH + os.sep + "Logo.png")
+window.call('wm', 'iconphoto', window._w, logo)
+window.title("BrainChain")
+window.geometry("962x619")
+window.configure(bg="#3A7FF6")
+
+canvas = Canvas(
+    window, bg="#3A7FF6", height=619, width=962,
+    bd=0, highlightthickness=0, relief="ridge")
+canvas.place(x=0, y=0)
+canvas.create_rectangle(431, 0, (491 + 701) * 2, (0 + 719)
+                        * 2, fill="#FCFCFC", outline="")
+canvas.create_rectangle(40, 160, 40 + 100, 160 + 5, fill="#FCFCFC", outline="")
+
+# Background Boxes
+
+text_box_bg = PhotoImage(file=ASSETS_PATH + "/" + "TextBox_Bg.png")
+filePath_entry_img = canvas.create_image(700.5, 167.5, image=text_box_bg)
+output_path_entry_img = canvas.create_image(700.5, 248.5, image=text_box_bg)
+
+
+def select_input_path():
+    global input_path
+    input_path = filedialog.askdirectory()
+    var = input_path
+    e_box.delete(0, tkinter.END)
+    e_box.insert(0, input_path)
+
+
+def select_output_path():
+    global output_path
+    output_path = filedialog.askdirectory()
+    out_var = output_path
+    o_box.delete(0, tkinter.END)
+    o_box.insert(0, output_path)
+
+    if output_path == "":
+        messagebox.showinfo(
+            "Information", "Output Will be created on Desktop!")
+
+
+def word_to_search():
+    global input_word
+    input_word = z_box.get()
+
+
+logging.basicConfig(format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+                    datefmt='%d-%m-%Y:%H:%M:%S',
+                    level=logging.DEBUG,
+                    filename='logs.txt')
+logger = logging.getLogger('brainchain_app')
+
+my_string_var = StringVar()
+status_lbl = Label(
+    text="Processing not begun..", bg="white",
+    fg="black", font=("Arial-BoldMT", int(8.0)), textvariable=my_string_var)
+my_string_var.set("Processing not begun..")
+status_lbl.place(x=447, y=600)
+window.update()
+
+# Path Boxes
+
+var = StringVar()
+
+e_box = Entry(window, bd=0, textvar=var, highlightthickness=0,
+              bg="#F6F7F9", fg="#000716")
+e_box.place(x=540.0, y=135 + 25, width=321.0, height=35)
+
+out_var = StringVar()
+o_box = Entry(window, bd=0, textvar=out_var,
+              highlightthickness=0, bg="#F6F7F9", fg="#000716")
+o_box.place(x=540.0, y=218 + 25, width=321.0, height=35)
+o_box.insert(0, "Generated at Desktop by default")
+
+word_var = StringVar()
+z_box = Entry(window, bd=0, textvar=word_var, highlightthickness=0,
+              bg="#F6F7F9", fg="#000716")
+z_box.place(x=540.0, y=300.5 + 25, width=321.0, height=35)
+
+path_picker_img = PhotoImage(file=ASSETS_PATH + "/" + "path_picker.png")
+
+input_picker_button = Button(
+    image=path_picker_img,
+    text='',
+    compound='center',
+    fg='white',
+    borderwidth=0,
+    highlightthickness=0,
+    command=select_input_path,
+    relief='flat'
+)
+
+input_picker_button.place(
+    x=833, y=150,
+    width=24,
+    height=22
+)
+
+output_picker_button = Button(
+    image=path_picker_img,
+    text='',
+    compound='center',
+    fg='white',
+    borderwidth=0,
+    highlightthickness=0,
+    command=select_output_path,
+    relief='flat'
+)
+
+output_picker_button.place(
+    x=833, y=225.5,
+    width=24,
+    height=22
+)
+
+canvas.create_text(
+    573.5, 88.0, text="Enter the details.",
+    fill="#515486", font=("Arial-BoldMT", int(22.0)))
+
+canvas.create_text(
+    540.0, 150.5, text="Input Path",
+    fill="#515486", font=("Arial-BoldMT", int(13.0)), anchor="w")
+
+canvas.create_text(
+    540.0, 230.5, text="Output Path",
+    fill="#515486", font=("Arial-BoldMT", int(13.0)), anchor="w")
+
+canvas.create_text(
+    540.0, 300.5, text="Word to Search",
+    fill="#515486", font=("Arial-BoldMT", int(13.0)), anchor="w")
+
+canvas.create_text(
+    540.0, 370.5, text="Locations",
+    fill="#515486", font=("Arial-BoldMT", int(13.0)), anchor="w")
+
+# Info Section
+
+title = Label(
+    text="Welcome to BrainChain", bg="#3A7FF6",
+    fg="white", font=("Arial-BoldMT", int(20.0)))
+title.place(x=27.0, y=75.0)
+
+info_text = Label(
+    text="BrainChain is a software and process framework\nto sync and collaborate with our virtual minds.\n\n"
+         "We believe we can do great things together by\nbuilding trust in our network and\nmaintaining, sharing our second brains .\n\n"
+         "At BrainChain our mission is to\n\nConnect the dots... \nConnect the world...",
+    bg="#3A7FF6", fg="white", justify="left",
+    font=("Georgia", int(13.0)))
+
+info_text.place(x=27.0, y=200.0)
+
+
+def callback(url):
+    webbrowser.open_new_tab(url)
+
+
+know_more = Label(
+    text="*click here to know more about usage of STIM....!",
+    bg="#3A7FF6", fg="#FCFCFC", cursor="hand2")
+
+know_more.place(x=27, y=460)
+know_more.bind('<Button-1>', lambda e:
+callback("http://www.google.com"))
+
+# Radio Button Input Section
+
+tut_btn_image = PhotoImage(file=ASSETS_PATH + "/" + "see_tut.png")
+
+tutorial_button1 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat", )
+tutorial_button1.bind(
+    '<Button-1>', lambda e: callback("http://www.google.com"))
+
+tutorial_button1.place(x=507, y=360, width=80, height=25, )
+
+tutorial_button2 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat", )
+tutorial_button2.bind(
+    '<Button-2>', lambda e: callback("http://www.google.com"))
+
+tutorial_button2.place(x=507, y=390, width=80, height=25, )
+
+tutorial_button3 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat", )
+tutorial_button3.bind(
+    '<Button-3>', lambda e: callback("http://www.google.com"))
+
+tutorial_button3.place(x=507, y=420, width=80, height=25, )
+
+tutorial_button4 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat", )
+tutorial_button4.bind(
+    '<Button>', lambda e: callback("http://www.google.com"))
+
+tutorial_button4.place(x=720, y=360, width=80, height=25, )
+
+tutorial_button5 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                          relief="flat", )
+tutorial_button5.bind(
+    '<Button>', lambda e: callback("http://www.google.com"))
+
+tutorial_button5.place(x=720, y=390, width=80, height=25, )
+
+tutorial_button_6 = Button(image=tut_btn_image, borderwidth=0, highlightthickness=0,
+                           relief="flat", )
+tutorial_button_6.bind(
+    '<Button>', lambda e: callback("http://www.google.com"))
+
+tutorial_button_6.place(x=720, y=420, width=80, height=25)
+
+label = Label(window)
+
+radio = IntVar()
+R1 = Radiobutton(window, text="Chrome History", variable=radio, value=1, bg='white', fg='black',
+                 command=None, )
+R1.pack(anchor=W, )
+R1.place(x=587, y=360)
+
+R2 = Radiobutton(window, text="Chrome Bookmarks", variable=radio, value=2, bg='white', fg='black',
+                 command=None)
+R2.pack(anchor=W)
+R2.place(x=587, y=390)
+
+R3 = Radiobutton(window, text="Youtube History", variable=radio, value=3, bg='white', fg='black',
+                 command=None)
+R3.pack(anchor=W)
+R3.place(x=587, y=420)
+
+R4 = Radiobutton(window, text="HTML from Docx", variable=radio, value=4, bg='white', fg='black',
+                 command=None, )
+R4.pack(anchor=W, )
+R4.place(x=802, y=360)
+
+R5 = Radiobutton(window, text="Pearltrees Bookmarks", variable=radio, value=5, bg='white', fg='black',
+                 command=None)
+R5.pack(anchor=W)
+R5.place(x=802, y=390)
+
+R6 = Radiobutton(window, text="LinkedIn Contacts", variable=radio, value=6, bg='white', fg='black',
+                 command=None)
+R6.pack(anchor=W)
+R6.place(x=802, y=420)
+
+# Authentication Popup
+'''
+global auth_bg
+auth_bg = PhotoImage(file=ASSETS_PATH + "/" + "Authenticate.png")
+'''
+
+
+def close_window(top):
+    top.destroy()
+
+
+def validate_for_file_format(file_format, filename):
+    if filename.lower().endswith(file_format):
+        return 1
+    else:
+        messagebox.showerror("File format Error", "File should be in " + file_format + " format")
+        return 0
+
+
+global loading_flag
+loading_flag = False
+processing_complete_flag = False
+current_index = 0
+
+
+def update_label():
+    global current_index
+    global loading_flag
+    global processing_complete_flag
+    synonyms = ["Loading...", "Preparing...", "Initializing...", "Calibrating...", "Optimizing...", "Syncing...",
+                "Buffering...", "Synchronizing...", "Compiling...", "Analyzing..."]
+    if loading_flag:
+        my_string_var.set(synonyms[current_index])
+        current_index = (current_index + 1) % len(synonyms)
+        status_lbl.update()
+    elif not loading_flag and processing_complete_flag:
+        my_string_var.set("Processing Complete")
+        status_lbl.update()
+    window.after(2000, update_label)
+
+def generate_click():
+    global input_word
+    input_word = z_box.get()
+    global output_path
+    global input_path
+    global loading_flag
+    global processing_complete_flag
+    obj = ParseMethod()
+    filtered_files = []
+
+    for root, dirs, files in os.walk(input_path):
+        for file in files:
+            if file.endswith(".mm"):
+                file_path = os.path.join(root, file)
+                with open(file_path, encoding='utf-8') as f:
+                    file_content = f.read()
+                    if input_word in file_content:
+                        open_mindmap(file_path)
+
+                        # Filter the mindmap structure and add it to the filtered structures list
+                        filtered_structure = filter_mindmap_structure(file_content, input_word)
+                        filtered_files.append({
+                            'Keyword found in file': file_path,
+                            'Filtered Structure': filtered_structure,
+                            'Path': os.path.dirname(file_path),
+                            'Link': 'file://' + file_path  # Add the file path as the link
+                        })
+
+    if filtered_files:
+        loading_flag = True  # Set the loading flag
+        update_label()  # Start the loading animation
+        show_results_popup(filtered_files)
+        processing_complete_flag = True
+
+    else:
+        messagebox.showinfo("Keyword Not Found", "Keyword not found in any mindmap.")
+def open_mindmap(file_path):
+    freemind_path = r"C:\Program Files (x86)\FreeMind\Freemind"
+    subprocess.run([freemind_path, file_path], check=True)
+
+def show_results_popup(results):
+    popup = tk.Tk()
+    popup.title("Search Results")
+
+    # Create a treeview widget to display the results as a chart
+    treeview = ttk.Treeview(popup)
+    treeview["columns"] = ("File", "Filtered Structure", "Path")  # Remove "Open" column
+
+    treeview.column("#0", width=1, stretch=tk.NO)  # Hide the first empty column
+    treeview.column("File", width=200, anchor=tk.W)
+    treeview.column("Filtered Structure", width=300, anchor=tk.W)
+    treeview.column("Path", width=200, anchor=tk.W)
+
+    treeview.heading("File", text="File", command=lambda: toggle_column_visibility(treeview, "File"))
+    treeview.heading("Filtered Structure", text="Filtered Structure",
+                     command=lambda: toggle_column_visibility(treeview, "Filtered Structure"))
+    treeview.heading("Path", text="Path", command=lambda: toggle_column_visibility(treeview, "Path"))
+
+    # Insert the results into the treeview
+    for result in results:
+        file = result.get('Keyword found in file', '')
+        structure = result.get('Filtered Structure', '')
+        path = result.get('Path', '')
+
+        # Insert the values into the treeview item
+        treeview.insert("", tk.END, values=(file, structure, path))
+
+
+    treeview.pack(fill=tk.BOTH, expand=True)
+
+    popup.mainloop()
+
+
+
+def toggle_column_visibility(treeview, column_name):
+    current_width = treeview.column(column_name, option="width")
+    if current_width == 0:
+        treeview.column(column_name, width=100)  # Set the width to an appropriate value
+    else:
+        treeview.column(column_name, width=0)
+
+
+def change_button_state(event=None):
+    if len(z_box.get()) > 0:
+        generate_btn.config(state='normal')
+    else:
+        generate_btn.config(state='disabled')
+
+
+z_box.bind("<KeyRelease>", change_button_state)
+
+generate_btn_img = PhotoImage(file=ASSETS_PATH + "/" + "generate.png")
+generate_btn = Button(
+    image=generate_btn_img,
+    compound="center",
+    borderwidth=0,
+    highlightthickness=0,
+    command=generate_click,
+    relief="flat",
+    state="disabled"
+)
+generate_btn.place(x=620, y=495.0, width=171.0, height=49.0)
+
+# Running the GUI
+update_label()
+window.mainloop()
